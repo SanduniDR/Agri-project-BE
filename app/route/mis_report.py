@@ -257,7 +257,7 @@ def search_crop_cultivation_by_monthly_district_office():
     ).join(
         Farmer, Farmer.user_id == Farm.farmer_id
     ).join(
-        AgriOffice, AgriOffice.agri_office_id == Farmer.assigned_office_id
+        AgriOffice, AgriOffice.agri_office_id == Farm.office_id
     ).join(
         Crop, Crop.crop_id == CultivationInfo.crop_id
     ).filter(
@@ -274,6 +274,39 @@ def search_crop_cultivation_by_monthly_district_office():
 
     return jsonify([row._asdict() for row in result])
 
+@report_routes.route('/search/cultivation-map/monthly/district/office', methods=['POST'])
+def search_crop_cultivation_map_by_monthly_district_office():
+    data =  request.get_json()
+    agri_year = data.get('year')
+    month = data.get('month')
+    crop_id = data.get('crop_id')
+    district = data.get('district')
+    office_id = data.get('office_id')
+    result = db.session.query(
+        AgriOffice.district,
+        Crop.crop_name,
+        CultivationInfo.cultivation_info_id,
+        CultivationInfo.longitude,
+        CultivationInfo.latitude,
+        AgriOffice.agri_office_id,
+    ).join(
+        Farm, Farm.farm_id == CultivationInfo.farm_id
+    ).join(
+        Farmer, Farmer.user_id == Farm.farmer_id
+    ).join(
+        AgriOffice, AgriOffice.agri_office_id == Farm.office_id
+    ).join(
+        Crop, Crop.crop_id == CultivationInfo.crop_id
+    ).filter(
+        #CultivationInfo.started_date <= func.current_date(),
+        CultivationInfo.agri_year == agri_year,
+        CultivationInfo.crop_id == crop_id,
+        extract('month', CultivationInfo.estimated_harvesting_date) == month,
+        AgriOffice.district == district,
+        AgriOffice.agri_office_id == office_id
+    ).all()
+
+    return jsonify([row._asdict() for row in result])
 
 @report_routes.route('users/count-by-role/<int:role_id>', methods=['GET'])
 def get_total_user_count_by_role(role_id):
@@ -587,3 +620,77 @@ def search_farmers():
     result=search_existing_farmers_By_Append(office_id, tax_file_no, field_area_id, user_id, page, per_page)
         # Return the result as JSON
     return jsonify(result)
+
+@report_routes.route('/search_tax/acre_tax', methods=['GET'])
+def get_farmer_tax_payer_count_by_district_year_office():
+    district = request.args.get('district')
+    office_id = request.args.get('office_id')
+
+    # Start the query
+    query = db.session.query(AgriOffice.district, func.count(Farmer.user_id)).join(AgriOffice, Farmer.assigned_office_id == AgriOffice.agri_office_id).filter(AgriOffice.district == district)
+
+    # If office_id is not an empty string, add it to the filter
+    if office_id != '':
+        query = query.filter(Farmer.assigned_office_id == office_id)
+
+    # Add the tax_file_no filter and group by district
+    data = query.filter(Farmer.tax_file_no.isnot(None)).group_by(AgriOffice.district).all()
+
+    chart_data = [{'district': district, 'farmer_count': count} for district, count in data]
+    # Return the data as a response
+    return jsonify(chart_data)
+
+@report_routes.route('/search_tax/all_acre_tax', methods=['GET'])
+def get_all_tax_payer_group_by_district():
+    query = db.session.query(AgriOffice.district, func.count(Farmer.user_id)).join(AgriOffice, Farmer.assigned_office_id == AgriOffice.agri_office_id)
+
+    # Add the tax_file_no filter and group by district
+    data = query.filter(Farmer.tax_file_no.isnot(None)).group_by(AgriOffice.district).all()
+
+    chart_data = [{'district': district, 'farmer_count': count} for district, count in data]
+    # Return the data as a response
+    return jsonify(chart_data)
+
+@report_routes.route('/offices/by-district', methods=['GET'])
+def get_offices_by_district():
+    district = request.args.get('district')
+    if not district:
+        return jsonify({'error': 'District parameter is missing'})
+    
+    offices = AgriOffice.query.filter(AgriOffice.district == district).all()
+    offices_list = []
+    for office in offices:
+        office_data = {
+            'agri_office_id': office.agri_office_id,
+            'name': office.name,
+            'city': office.city,
+            'province': office.province,
+            'district': office.district
+        }
+        offices_list.append(office_data)
+    
+    return jsonify({'offices': offices_list})
+
+@report_routes.route('/officers-by-office', methods=['GET'])
+def get_officers_by_office():
+    office_id = request.args.get('office_id')
+    if not office_id:
+        return jsonify({'error': 'Office ID parameter is missing'})
+    
+    officers = db.session.query(
+        AgricultureOfficer.user_id,
+        AgricultureOfficer.employee_id,
+        AgricultureOfficer.managed_by_employee_id,
+        AgricultureOfficer.agri_office_id,
+        AgricultureOfficer.service_start_date,
+        AgricultureOfficer.field_area_id,
+        User.email,
+        User.first_name,
+    ).join(
+        User, User.user_id == AgricultureOfficer.user_id
+    ).filter(
+        AgricultureOfficer.agri_office_id == office_id
+    ).all()
+
+    officers_list = [{'user_id': user_id, 'employee_id': employee_id, 'managed_by_employee_id': managed_by_employee_id, 'agri_office_id': agri_office_id, 'service_start_date': service_start_date, 'field_area_id': field_area_id, 'email': email, 'first_name': first_name} for user_id, employee_id, managed_by_employee_id, agri_office_id, service_start_date, field_area_id, email, first_name in officers]
+    return jsonify({'officers': officers_list})

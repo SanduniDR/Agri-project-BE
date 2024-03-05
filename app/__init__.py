@@ -3,7 +3,7 @@ import random
 
 from flask import Flask
 from app.models import db, MiscellaneousAids, Fuel, MonetaryAid, Pesticides,Farm, User, Role, CultivationInfo, Crop, AgriOffice, Farmer, FieldArea, AgricultureOfficer,AidDistribution, Fertilizer, Aid
-from app.schemas import ma
+from app.schemas import ma, cultivation_info_schema
 from app.routes import app as app_blueprint
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from app.route.user_routes import user_routes, configure_mail
@@ -207,6 +207,7 @@ def db_seed():
 
         for i in range(num_field_areas):
             # Create a new FieldArea record
+            print(office.agri_office_id)
             new_field_area = FieldArea(
                 agri_office_id=office.agri_office_id,
                 name=f'Field Area {i+1}'
@@ -337,24 +338,46 @@ def db_seed():
     db.session.commit()
 ########################################################################################
     # Get the IDs of all farmers and farms
-    farmer_ids = [farmer.user_id for farmer in User.query.filter_by(role=5).all()]
-    farm_ids = [farm.farmer_id for farm in Farm.query.all()]
-    crop_ids = [crop.crop_id for crop in Crop.query.all()]
+    farmer_ids1 = [farmer.user_id for farmer in User.query.filter_by(role=5).all()]
+    farm_ids1 = [farm.farm_id for farm in Farm.query.all()]
+    crop_ids1 = [crop.crop_id for crop in Crop.query.all()]
+    agri_offices1 = AgriOffice.query.all()
     # Define the range of latitudes and longitudes for Sri Lanka
-    lat_range = (5.9248, 9.6615)
-    lon_range = (79.6520, 81.9297)
+    # lat_range = (5.9248, 9.6615)
+    # lon_range = (79.6520, 81.9297)
+    ranges = [{'city': 'Colombo', 'latitude': 6.9388614, 'longitude': 79.8542005}, {'city': 'Dehiwala-Mount Lavinia', 'latitude': 6.8352314, 'longitude': 79.8673945}, {'city': 'Moratuwa', 'latitude': 6.7746821, 'longitude': 79.8826095}, {'city': 'Gampaha', 'latitude': 7.1190247499999995, 'longitude': 79.91598756451819}, {'city': 'Negombo', 'latitude': 7.2094282, 'longitude': 79.833117}, {'city': 'Wattala', 'latitude': 6.9898705, 'longitude': 79.8927094}, {'city': 'Kalutara', 'latitude': 6.5745305, 'longitude': 80.02863119765179}, {'city': 'Panadura', 'latitude': 6.7124685, 'longitude': 79.9044746}, {'city': 'Horana', 'latitude': 6.716628, 'longitude': 80.0619488}, {'city': 'Kandy', 'latitude': 7.2931208, 'longitude': 80.6350358}, {'city': 'Peradeniya', 'latitude': 7.2642107, 'longitude': 80.5930652}, {'city': 'Matale', 'latitude': 7.698211, 'longitude': 80.66090797017742}, {'city': 'Dambulla', 'latitude': 7.8742031, 'longitude': 80.6510917}, {'city': 'Sigiriya', 'latitude': 7.95638465, 'longitude': 80.759825710275}, {'city': 'Nuwara Eliya', 'latitude': 7.012402, 'longitude': 80.75716115484704}, {'city': 'Hatton', 'latitude': 47.6397087, 'longitude': -97.4534224}, {'city': 'Nanu Oya', 'latitude': 6.9453246, 'longitude': 80.7494588}, {'city': 'Galle', 'latitude': 6.0328139, 'longitude': 80.214955}, {'city': 'Ambalangoda', 'latitude': 6.2389059, 'longitude': 80.0541466}, {'city': 'Hikkaduwa', 'latitude': 6.140753, 'longitude': 80.1028181}, {'city': 'Matara', 'latitude': 5.947822, 'longitude': 80.5482919}, {'city': 'Weligama', 'latitude': 5.9754333, 'longitude': 80.4295612}, {'city': 'Mirissa', 'latitude': 5.9493634, 'longitude': 80.4558128}, {'city': 'Hambantota', 'latitude': 6.176392, 'longitude': 81.13211949976017}, {'city': 'Jaffna', 'latitude': 9.665093, 'longitude': 80.0093029}, {'city': 'Point Pedro', 'latitude': 9.8241007, 'longitude': 80.2361837}, {'city': 'Nallur', 'latitude': 9.4532099, 'longitude': 80.2608912}, {'city': 'Kilinochchi', 'latitude': 9.3840068, 'longitude': 80.4087224}, {'city': 'Mankulam', 'latitude': 8.5259214, 'longitude': 76.9458904}, {'city': 'Oddusuddan', 'latitude': 9.180866, 'longitude': 80.6625934}, {'city': 'Mannar', 'latitude': 7.674124750000001, 'longitude': 78.93709277882492}, {'city': 'Nanattan', 'latitude': 8.8356502, 'longitude': 79.967523}, {'city': 'Vidathaltheevu', 'latitude': 9.0215013, 'longitude': 80.0513896}, {'city': 'Mullaitivu', 'latitude': 9.2698532, 'longitude': 80.8145347}, {'city': 'Puthukudiyiruppu', 'latitude': 7.6201721, 'longitude': 81.7606231}, {'city': 'Vavuniya', 'latitude': 8.7593517, 'longitude': 80.5000778}, {'city': 'Nedunkeni', 'latitude': 9.0393539, 'longitude': 80.3698335}, {'city': 'Pampaimadu', 'latitude': 8.7889469, 'longitude': 80.4213922}, {'city': 'Batticaloa', 'latitude': 7.7356027, 'longitude': 81.6941956}, {'city': 'Kattankudy', 'latitude': 7.6804861, 'longitude': 81.7289676}, {'city': 'Eravur', 'latitude': 7.785563, 'longitude': 81.6045991}, {'city': 'Ampara', 'latitude': 7.0617095, 'longitude': 81.8466351552707}, {'city': 'Kalmunai', 'latitude': 7.4131557, 'longitude': 81.8269327}, {'city': 'Sammanthurai', 'latitude': 7.3703313, 'longitude': 81.812472}, {'city': 'Trincomalee', 'latitude': 8.576425, 'longitude': 81.2344952}, {'city': 'Kinniya', 'latitude': 8.5016494, 'longitude': 81.1912179}, {'city': 'Kurunegala', 'latitude': 7.4870464, 'longitude': 80.364908}, {'city': 'Kuliyapitiya', 'latitude': 7.4701428, 'longitude': 80.0440349}, {'city': 'Nikaweratiya', 'latitude': 7.750383, 'longitude': 80.1157229}, {'city': 'Puttalam', 'latitude': 7.981840249999999, 'longitude': 79.82933709234904}, {'city': 'Anamaduwa', 'latitude': 7.8776367, 'longitude': 80.0109366}, {'city': 'Chilaw', 'latitude': 7.5765074, 'longitude': 79.7956755}, {'city': 'Anuradhapura', 'latitude': 8.334985, 'longitude': 80.4106096}, {'city': 'Medawachchiya', 'latitude': 8.5387775, 'longitude': 80.492996}, {'city': 'Polonnaruwa', 'latitude': 7.9395357, 'longitude': 81.0003387}, {'city': 'Hingurakgoda', 'latitude': 8.0415145, 'longitude': 80.9531701}, {'city': 'Medirigiriya', 'latitude': 8.1423253, 'longitude': 80.971342}, {'city': 'Badulla', 'latitude': 6.9900353, 'longitude': 81.0570315}, {'city': 'Bandarawela', 'latitude': 6.8304821, 'longitude': 80.9888204}, {'city': 'Haputale', 'latitude': 6.7682444, 'longitude': 80.9576349}, {'city': 'Monaragala', 'latitude': 6.8725497, 'longitude': 81.3507069}, {'city': 'Bibile', 'latitude': 7.1600897, 'longitude': 81.2254141}, {'city': 'Buttala', 'latitude': 6.760246, 'longitude': 81.2470358}, {'city': 'Ratnapura', 'latitude': 6.6803691, 'longitude': 80.4022975}, {'city': 'Embilipitiya', 'latitude': 6.3340647, 'longitude': 80.8538325}, {'city': 'Kuruwita', 'latitude': 6.7761011, 'longitude': 80.3668957}, {'city': 'Kegalle', 'latitude': 7.11344465, 'longitude': 80.32173952070438}, {'city': 'Mawanella', 'latitude': 7.2523113, 'longitude': 80.4468038}, {'city': 'Rambukkana', 'latitude': 7.3239273, 'longitude': 80.3957479}]
 
     # # Add mock CultivationInfo records
-    for i in range(1, 501):
+    for i in range(1, 50000):
+        print(i)
         started_date = datetime.now() - timedelta(days=random.randint(1, 365))
         estimated_harvesting_date = started_date + timedelta(days=random.randint(30, 120))
-
+        farm_id= random.choice(farm_ids1)
+        # farmOb = Farm.query.get(farm_id)
+        offices_id = [farm.office_id for farm in Farm.query.filter(Farm.farm_id == farm_id).all()]
+        # Get the city name of the office table from the office id
+        print(offices_id[0])
+        office = AgriOffice.query.get(offices_id[0])
+        city = [office.city for office in AgriOffice.query.filter(AgriOffice.agri_office_id == offices_id[0]).all()]
+        print(city)
+        longitude = 0
+        latitude = 0
+        for item in ranges:
+            # print(item['city'] , city[0])
+            if item['city'] == city[0]:
+                # print(item['city'] , city[0], 'found')
+                longitude = item['longitude']
+                latitude = item['latitude']
+                break  # exit the loop once the city is found
+        range__ = [0.001, 0.002, -0.001, -0.002]
+        lon_range2= longitude + random.choice(range__)
+        lat_range2 = latitude + random.choice(range__)        
         cultivation_info = CultivationInfo(
             display_name=f'Cultivation{i}',
-            farm_id=random.choice(farm_ids),
-            crop_id=random.choice(crop_ids),
-            longitude=random.uniform(*lon_range),
-            latitude=random.uniform(*lat_range),
+            farm_id=farm_id,
+            crop_id=random.choice(crop_ids1),
+            longitude=lon_range2,
+            latitude=lat_range2,
             area_of_cultivation=f'{i}',
             started_date=started_date,
             estimated_harvesting_date=estimated_harvesting_date,
@@ -368,7 +391,10 @@ def db_seed():
             harvested_amount=f'{i}',
             added_date=datetime.now()
         )
+        # result= cultivation_info_schema.dump(cultivation_info)
+        # print(result)
         db.session.add(cultivation_info)
+    db.session.commit()
     
 #################################################################33
     farmers = User.query.filter_by(role=5).all()
@@ -428,41 +454,6 @@ def db_seed():
     farmer_ids = [farmer.user_id for farmer in User.query.filter_by(role=5).all()]
 
     # For each office
-    for office in agri_offices:
-        # For each farm
-        for farm in farms:
-            # For each crop
-            print(farm.farm_id)
-            for crop in crops:
-                # Add 1000 mock CultivationInfo records
-                for i in range(1, 10):
-                    year = random.choice([2022, 2023, 2024])
-                    start_day = random.randint(1, 365)
-                    started_date = datetime(year=year, month=1, day=1) + timedelta(days=start_day)
-                    estimated_harvesting_date = started_date + timedelta(days=random.randint(30, 120))
-
-                    cultivation_info = CultivationInfo(
-                        display_name=f'Cultivation{i}',
-                        farm_id=farm.farm_id,  # Use the farm ID
-                        crop_id=crop.crop_id,  # Use the crop ID
-                        longitude=random.uniform(*lon_range),
-                        latitude=random.uniform(*lat_range),
-                        area_of_cultivation=f'{i}',
-                        started_date=started_date,
-                        estimated_harvesting_date=estimated_harvesting_date,
-                        estimated_harvest=f'{i}',
-                        agri_year=year,
-                        quarter=random.choice(['Q1', 'Q2', 'Q3', 'Q4']),
-                        added_by=random.choice(farmer_ids),
-                        updated_by=random.choice(farmer_ids),
-                        harvested_date=estimated_harvesting_date + timedelta(days=random.randint(1, 30)),
-                        harvested_amount=f'{i}',
-                        added_date=datetime.now()
-                    )
-                    db.session.add(cultivation_info)
-
-    db.session.commit()
-    print("farm added done")
     ##################################################################################
     # Generate random string
     print("aid started done")
@@ -481,7 +472,6 @@ def db_seed():
     # Seed Aid table
     aid_ids = []
     for year in range(2021, 2025):
-        print("aid year loop")
         for i in range(20):
             aid = Aid(
                 aid_name=random_string(10),

@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -274,3 +274,15 @@ class AidDistribution(db.Model):
     amount_received = Column(Integer)
     amount_approved = Column(Integer)
     description = Column(String(100))
+
+class EmailRecord(db.Model):
+    __tablename__ = 'email_record'
+    id = Column(Integer, primary_key=True)
+    email = Column(String(100))
+    subject = Column(String(100))
+    message_text = Column(String(500))
+    sent_at = Column(DateTime)
+    sent_by = Column(String(100))
+    sent_to = Column(String(100))
+    status_sent = Column(Boolean)
+    response = Column(String(500))

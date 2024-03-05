@@ -108,7 +108,9 @@ class AidDistributionSchema(ma.Schema):
     class Meta:
         fields = ('distribution_id', 'aid_id', 'agri_office_id', 'date', 'time', 'in_charged_officer_id', 'cultivation_info_id', 'farmer_id', 'amount_received', 'amount_approved', 'description')
 
-
+class EmailRecordSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'email', 'subject', 'message_text', 'sent_at', 'sent_by', 'sent_to', 'status_sent', 'response')
 
 user_schema = UserSchema()
 contact_schema = ContactSchema()
@@ -135,6 +137,7 @@ monetary_aid_schema = MonetaryAidSchema()
 fuel_schema = FuelSchema()
 miscellaneous_aids_schema = MiscellaneousAidsSchema()
 aid_distribution_schema = AidDistributionSchema()
+email_record_schema = EmailRecordSchema()
 
 # For schemas representing multiple instances
 users_schema = UserSchema(many=True)
@@ -162,4 +165,5 @@ monetary_aids_schema = MonetaryAidSchema(many=True)
 fuels_schema = FuelSchema(many=True)
 miscellaneous_aids_schemas = MiscellaneousAidsSchema(many=True)
 aid_distributions_schema = AidDistributionSchema(many=True)
+email_records_schema = EmailRecordSchema(many=True)
 

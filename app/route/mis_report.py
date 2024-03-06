@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 from flask import request
-from app.models import MiscellaneousAids, MonetaryAid, Fuel, Pesticides, AgricultureOfficer, AidDistribution, Farmer, Fertilizer, Pesticides, RegionalAdmin, Researcher, SuperAdmin, User, Vendor, Role, db
+from app.models import MiscellaneousAids, MonetaryAid, Fuel, Advertisement, Pesticides, AgricultureOfficer, AidDistribution, Farmer, Fertilizer, Pesticides, RegionalAdmin, Researcher, SuperAdmin, User, Vendor, Role, db
 from app.schemas import fuel_schema, miscellaneous_aids_schema, aid_distribution_schema, monetary_aid_schema,pesticide_schema,farms_schema, farm_schema, fertilizers_schema, pesticides_schema, aids_schema, aid_schema, aid_schema, fertilizer_schema
 from app.service.users.util_service import parse_date
 from app.service.users.user_service import search_existing_farmers_By_Append
@@ -694,3 +694,61 @@ def get_officers_by_office():
 
     officers_list = [{'user_id': user_id, 'employee_id': employee_id, 'managed_by_employee_id': managed_by_employee_id, 'agri_office_id': agri_office_id, 'service_start_date': service_start_date, 'field_area_id': field_area_id, 'email': email, 'first_name': first_name} for user_id, employee_id, managed_by_employee_id, agri_office_id, service_start_date, field_area_id, email, first_name in officers]
     return jsonify({'officers': officers_list})
+
+# @report_routes.route('/ads/monthly', methods=['GET'])
+# def get_monthly_ads_distributions( ):
+#     year = request.args.get('year')
+#     description = request.args.get('type')
+#     fertilizer_distributions = db.session.query(
+#         extract('month', AidDistribution.date).label('month'),
+#         func.sum(AidDistribution.amount_approved).label('total_amount_approved')
+#     ).filter(
+#         AidDistribution.description == description,
+#         extract('year', AidDistribution.date) == year
+#     ).group_by(
+#         'month'
+#     ).order_by(
+#         'month'
+#     ).all()
+
+#     # Initialize a list with 12 dictionaries, one for each month
+#     monthly_fertilizer_distributions = [{'month': month, 'total_amount_approved': 0.0} for month in range(1, 13)]
+
+#     # Update the dictionaries with the actual data
+#     for distribution in fertilizer_distributions:
+#         # The month in the distribution record is 1-based, so subtract 1 to get the 0-based index
+#         index = int(distribution.month) - 1
+
+#         # Update the total_amount_approved for the month
+#         monthly_fertilizer_distributions[index]['total_amount_approved'] = float(distribution.total_amount_approved)
+
+#     return jsonify(monthly_fertilizer_distributions)
+
+@report_routes.route('/ads/monthly', methods=['GET'])
+def get_monthly_ads_officer_distributions():
+    year = request.args.get('year')
+    crop_id = request.args.get('crop_id')
+    monthly_advertisements = db.session.query(
+        extract('month', Advertisement.date).label('month'),
+        func.count(Advertisement.ad_id).label('total_ads')
+    ).filter(
+        extract('year', Advertisement.date) == year,
+        Advertisement.crop_id == crop_id
+    ).group_by(
+        'month'
+    ).order_by(
+        'month'
+    ).all()
+
+    # Initialize a list with 12 dictionaries, one for each month
+    monthly_advertisements_counts = [{'month': month, 'total_ads': 0} for month in range(1, 13)]
+
+    # Update the dictionaries with the actual data
+    for ad in monthly_advertisements:
+        # The month in the ad record is 1-based, so subtract 1 to get the 0-based index
+        index = int(ad.month) - 1
+
+        # Update the total_ads for the month
+        monthly_advertisements_counts[index]['total_ads'] = ad.total_ads
+
+    return jsonify(monthly_advertisements_counts)

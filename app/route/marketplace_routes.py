@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import Advertisement, User, db
+from app.models import Advertisement, User, db, AgricultureOfficer,Farmer
 from app.schemas import advertisement_schema, advertisements_schema
 import logging
 from datetime import datetime
@@ -53,7 +53,7 @@ def update_advertisement(advertisement_id):
     advertisement = Advertisement.query.get(advertisement_id)
 
     # Check if the advertisement exists and belongs to the current user
-    if advertisement is None or advertisement.user_id != current_user['id']:
+    if advertisement is None or advertisement.user_id != current_user:
         return jsonify({'message': 'Advertisement not found or unauthorized'}), 404
 
     # Get the updated advertisement data from the request
@@ -74,8 +74,36 @@ def update_advertisement(advertisement_id):
     advertisement.crop_id = data['crop_id']
     advertisement.amount = data['amount']
     advertisement.telephone_no = data['telephone_no']
-    advertisement.verified_officer_id = data['verified_officer_id']
+    # advertisement.verified_officer_id = data['verified_officer_id']
     advertisement.image_link = data['image_link']
+
+    # Commit the changes to the database
+    db.session.commit()
+
+    # Return the updated advertisement as JSON response
+    return advertisement_schema.jsonify(advertisement)
+
+@market_routes.route('/approve/advertisement', methods=['PUT'])
+@jwt_required()
+def approve_advertisement():
+    # Get the current user's identity
+    current_user_id = get_jwt_identity()
+    ad_id = request.args.get('ad_id')
+
+    # Get the current user's role
+    current_user = User.query.get(current_user_id)
+    current_user_role = current_user.role
+
+    # Get the advertisement from the database
+    advertisement = Advertisement.query.get(ad_id)
+
+    # Check if the advertisement exists and belongs to the current user
+    if advertisement is None:
+        return jsonify({'message': 'Advertisement not found or unauthorized'}), 404
+
+    # If the current user's role is 4, update the verified_officer_id field
+    if current_user_role == 4:
+        advertisement.verified_officer_id = current_user_id
 
     # Commit the changes to the database
     db.session.commit()
@@ -120,10 +148,6 @@ def get_my_advertisements():
     # Get the advertisements from the pagination object
     advertisements = pagination.items
 
-    # Check if there are any advertisements
-    if not advertisements:
-        return jsonify({'message': 'No advertisements found'}), 404
-
     # Return the advertisements as JSON response
     return jsonify({
         'data': advertisements_schema.dump(advertisements),
@@ -131,6 +155,50 @@ def get_my_advertisements():
         'current_page': pagination.page,
         'per_page': pagination.per_page,
         'total_items': pagination.total
+    }), 200
+from flask import request
+
+@market_routes.route('/officer/regional/ads', methods=['GET'])
+@jwt_required()
+def get_regional_advertisements():
+    # Get the current user's identity
+    token_user_id = get_jwt_identity()
+
+    # Get the current user's role
+    current_user = User.query.get(token_user_id)
+    print(current_user)
+    current_user_role = current_user.role
+
+    # Check if the current user is an Agriculture Officer
+    if current_user_role != 4:
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    # Get the Agriculture Officer's assigned office
+    agri_officer = AgricultureOfficer.query.get(token_user_id)
+    print(agri_officer)
+    assigned_office_id = agri_officer.agri_office_id
+
+    # Get all Farmers assigned to the same office
+    farmers = Farmer.query.filter_by(assigned_office_id=assigned_office_id).all()
+
+    # Get all user_ids of these farmers
+    farmer_user_ids = [farmer.user_id for farmer in farmers]
+
+    # Get page and per_page parameters from the request
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    # Get all advertisements posted by these farmers with pagination
+    pagination = Advertisement.query.filter(Advertisement.user_id.in_(farmer_user_ids)).paginate(page=page, per_page=per_page)
+    advertisements = pagination.items
+
+    # Return the advertisements and pagination info as JSON response
+    return jsonify({
+        'data': advertisements_schema.dump(advertisements),
+        'current_page': pagination.page,
+        'per_page': pagination.per_page,
+        'total_items': pagination.total,
+        'total_pages': pagination.pages,
     }), 200
 
 @market_routes.route('/advertisement/<int:advertisement_id>', methods=['DELETE'])
@@ -154,7 +222,6 @@ def delete_advertisement(advertisement_id):
     return jsonify({'message': 'Advertisement deleted successfully'}), 200
 
 @market_routes.route('/all_advertisements', methods=['GET'])
-@jwt_required()
 def get_all_advertisements():
     # Get the page number and size from the request parameters
     page = request.args.get('page', 1, type=int)

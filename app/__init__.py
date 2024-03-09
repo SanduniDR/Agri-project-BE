@@ -15,6 +15,7 @@ from app.route.communication_routes import com_routes
 from app.route.aid_routes import aid_routes
 from app.route.marketplace_routes import market_routes
 from app.route.disaster_routes import disaster_routes
+from app.route.file_management_routes import file_routes
 import string
 
 from flask_mail import Mail, Message
@@ -47,6 +48,7 @@ app.register_blueprint(report_routes, url_prefix='/report')
 app.register_blueprint(com_routes, url_prefix='/communication')
 app.register_blueprint(market_routes, url_prefix='/market')
 app.register_blueprint(disaster_routes, url_prefix='/disaster')
+app.register_blueprint(file_routes, url_prefix='/file')
 
 if __name__ == '__main__':
     app.run()

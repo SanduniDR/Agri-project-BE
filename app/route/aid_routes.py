@@ -7,7 +7,7 @@ from app.service.users.util_service import parse_date
 
 aid_routes = Blueprint('aid', __name__)
 CORS(aid_routes)
-
+# add aid route
 @aid_routes.route('', methods=['POST'])
 @jwt_required()
 def add_aid():
@@ -28,6 +28,7 @@ def add_aid():
 
     return jsonify({'message': 'New aid added successfully!'})
 
+# get aid route 
 @aid_routes.route('', methods=['GET'])
 @jwt_required()
 def get_aid():
@@ -41,6 +42,7 @@ def get_aid_by_id(id):
     aid = Aid.query.get(id)
     return aid_schema.jsonify(aid)
 
+# search aid route
 @aid_routes.route('/search', methods=['GET'])
 @jwt_required()
 def search_aid():
@@ -77,7 +79,7 @@ def search_aid():
         'per_page': pagination.per_page,
         'total_items': pagination.total
     }), 200
-
+# delete aid route 
 @aid_routes.route('/<id>', methods=['DELETE'])
 @jwt_required()
 def delete_aid(id):
@@ -86,6 +88,7 @@ def delete_aid(id):
     db.session.commit()
     return jsonify({'message': 'Aid deleted successfully!'})
 
+# update aid route 
 @aid_routes.route('/<id>', methods=['PUT'])
 @jwt_required()
 def update_aid(id):

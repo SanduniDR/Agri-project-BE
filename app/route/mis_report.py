@@ -276,12 +276,17 @@ def search_crop_cultivation_by_monthly_district_office():
 
 @report_routes.route('/search/cultivation-map/monthly/district/office', methods=['POST'])
 def search_crop_cultivation_map_by_monthly_district_office():
+    # Get the request data
     data =  request.get_json()
+
+    # Extract the required parameters from the data
     agri_year = data.get('year')
     month = data.get('month')
     crop_id = data.get('crop_id')
     district = data.get('district')
     office_id = data.get('office_id')
+
+    # Query the database for the cultivation information
     result = db.session.query(
         AgriOffice.district,
         Crop.crop_name,
@@ -290,15 +295,15 @@ def search_crop_cultivation_map_by_monthly_district_office():
         CultivationInfo.latitude,
         AgriOffice.agri_office_id,
     ).join(
-        Farm, Farm.farm_id == CultivationInfo.farm_id
+        Farm, Farm.farm_id == CultivationInfo.farm_id  # Join with Farm table
     ).join(
-        Farmer, Farmer.user_id == Farm.farmer_id
+        Farmer, Farmer.user_id == Farm.farmer_id  # Join with Farmer table
     ).join(
-        AgriOffice, AgriOffice.agri_office_id == Farm.office_id
+        AgriOffice, AgriOffice.agri_office_id == Farm.office_id  # Join with AgriOffice table
     ).join(
-        Crop, Crop.crop_id == CultivationInfo.crop_id
+        Crop, Crop.crop_id == CultivationInfo.crop_id  # Join with Crop table
     ).filter(
-        #CultivationInfo.started_date <= func.current_date(),
+        # Apply filters based on the request parameters
         CultivationInfo.agri_year == agri_year,
         CultivationInfo.crop_id == crop_id,
         extract('month', CultivationInfo.estimated_harvesting_date) == month,
@@ -306,6 +311,7 @@ def search_crop_cultivation_map_by_monthly_district_office():
         AgriOffice.agri_office_id == office_id
     ).all()
 
+    # Return the result as a JSON response
     return jsonify([row._asdict() for row in result])
 
 @report_routes.route('users/count-by-role/<int:role_id>', methods=['GET'])

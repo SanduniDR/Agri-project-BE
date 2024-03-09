@@ -1,8 +1,9 @@
+# This file contains the schemas for the database models
 from flask_marshmallow import Marshmallow
-
+# from app import ma
 ma = Marshmallow()
 
-
+# Schemas for the database models
 class UserSchema(ma.Schema):
     class Meta:
         fields = ('user_id', 'first_name', 'middle_name', 'last_name', 'email', 'nic', 'dob', 'role')

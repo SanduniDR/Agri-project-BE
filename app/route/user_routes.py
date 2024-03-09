@@ -25,32 +25,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 def configure_mail(app):
     mail.init_app(app)
-
-# @user_routes.route("/register", methods=['POST'])
-# def register():
-#     if request.is_json:
-#         email = request.json['email']
-#         test = User.query.filter_by(email=email).first()
-#         if test:
-#             return jsonify(message='That email already exists.'), 409
-#         else:
-#             first_name = request.json['first_name']
-#             last_name = request.json['last_name']
-#             password = request.json['password']
-#             nic =  request.json['nic']
-#             dob = parse_date(request.json['dob'])
-#             role = 2
-#             if 'role' in request.json:
-#                 role = request.json['role']
-
-#             user = User(first_name=first_name, last_name=last_name, email=email, password=password, nic=nic, dob=dob, role=role)
-#             success, message = register_user(user)
-#             if success:
-#                 return jsonify(message=message), 201
-#             else:
-#                 return jsonify(message=message), 400
-#     else:
-#         return jsonify(message='Invalid request. Only JSON data is supported.'), 400
     
 ######################## User Registration  ################################
 @user_routes.route("/register", methods=['POST'])

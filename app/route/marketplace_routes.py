@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 from app.service.users.util_service import parse_date
 from flask import request
+from flask import send_from_directory
 
 market_routes = Blueprint('market', __name__)
 CORS(market_routes)
@@ -249,3 +250,21 @@ def get_all_advertisements():
         'total_items': pagination.total
     }), 200
 
+@market_routes.route('/advertisement/<int:advertisement_id>/image', methods=['GET'])
+def get_advertisement_image(advertisement_id):
+    # Get the advertisement from the database
+    advertisement = Advertisement.query.get(advertisement_id)
+
+    # Check if the advertisement exists
+    if advertisement is None:
+        return jsonify({'message': 'Advertisement not found'}), 404
+
+    # Get the image filename from the advertisement
+    image_filename = advertisement.image_link
+
+    # Define the directory where your images are stored
+    # Replace 'your_directory' with the path to the directory where your images are stored
+    image_directory = 'app\images\advertisement'
+
+    # Send the image file
+    return send_from_directory(image_directory, image_filename)

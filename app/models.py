@@ -3,12 +3,14 @@ from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
 
+# This file contains the database models for the application.
 db = SQLAlchemy()
 
-class User(db.Model):
-    __tablename__ = 'user'
+# The following classes are the database models for the application.
+class User(db.Model): # User class
+    __tablename__ = 'user' # Table name
     user_id = Column(Integer, primary_key=True) # SQL Alchemy will auto-increment
-    first_name = Column(String(100))
+    first_name = Column(String(100)) # Column name and type
     middle_name = Column(String(100), nullable=True)
     last_name = Column(String(100))
     nic = Column(String(100), unique=True)

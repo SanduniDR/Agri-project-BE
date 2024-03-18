@@ -45,6 +45,7 @@ def add_farm():
         
         return jsonify(message="New farm was registered successfully"), 201
 
+########################  Get Farm by Id ################################
 
 @farm_routes.route('/<int:farm_id>', methods=['GET'])
 @jwt_required()
@@ -52,10 +53,11 @@ def get_farm_details(farm_id: int):
     farm = Farm.query.filter_by(farm_id=farm_id).first()
     if farm:
         result = farm_schema.dump(farm)
-        return jsonify(result)
+        return jsonify(farm=result),200
     else:
         return jsonify(message="No farm was found for the given ID, Please check the ID and try again"), 404
 
+########################  Update Farm Details ################################
 
 @farm_routes.route('/<int:farm_id>', methods=['PUT'])
 @jwt_required()
@@ -75,6 +77,7 @@ def update_farm(farm_id):
     else:
         return jsonify(message="The farm does not exist in the system, please register"), 404
 
+########################  Delete Farm ################################
 
 @farm_routes.route('/<int:farm_id>', methods=['DELETE'])
 @jwt_required()
@@ -86,6 +89,8 @@ def remove_farm(farm_id: int):
         return jsonify(message = "Farm was removed!"), 202
     else:
         return jsonify(message="No farm was found for the given ID, Please check the ID and try again"), 404
+
+
 
 @farm_routes.route('/farms', methods=['GET'])
 @jwt_required()

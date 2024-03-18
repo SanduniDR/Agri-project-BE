@@ -11,6 +11,8 @@ import datetime
 cultivation_routes = Blueprint('cultivation', __name__)
 CORS(cultivation_routes)
 
+########################  Add Cultivation ################################
+
 @cultivation_routes.route('/info', methods=['POST'])
 @jwt_required()
 def add_CultivationInfo():
@@ -51,6 +53,9 @@ def add_CultivationInfo():
     # Return a response
     return jsonify(message='Cultivation info added successfully'), 201
 
+
+########################  Get CultivationInfo by Id ################################
+
 @cultivation_routes.route('/<int:cultivation_id>', methods=['GET'])
 @jwt_required()
 def get_CultivationInfo(cultivation_id):
@@ -61,7 +66,10 @@ def get_CultivationInfo(cultivation_id):
 
     # Return the cultivation info
     result = cultivation_info_schema.dump(cultivation_info)
-    return jsonify(result), 200
+    return jsonify(cultivation_Info=result), 200
+
+
+########################  Update CultivationInfo by Id ################################
 
 @cultivation_routes.route('/<int:cultivation_id>', methods=['PUT'])
 @jwt_required()
@@ -111,6 +119,9 @@ def update_CultivationInfo(cultivation_id):
     # Return a response
     return jsonify(message='Cultivation info updated successfully'), 200
 
+
+########################  Search CultivationInfo by Id ################################
+
 @cultivation_routes.route('/search', methods=['GET'])
 @jwt_required()
 def search_CultivationInfo():
@@ -149,6 +160,8 @@ def search_CultivationInfo():
         'per_page': pagination.per_page,
         'total_items': pagination.total
     }), 200
+
+########################  Delete CultivationInfo by Id ################################
 
 @cultivation_routes.route('/<int:cultivation_id>', methods=['DELETE'])
 @jwt_required()

@@ -6,12 +6,14 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import CORS
 import datetime
 from sqlalchemy import extract
-from app.models import DisasterInfo, AgriOffice, CultivationInfo, Crop, Farm, Farmer,CultivationInfo, DisasterInfo,db
+from app.models import DisasterInfo, AgriOffice, CultivationInfo, Crop, Farm, Farmer,CultivationInfo,db
 
 
 
 disaster_routes = Blueprint('disaster', __name__)
 CORS(disaster_routes)
+
+############################## Add Disaster Information  ###################################
 
 
 @disaster_routes.route('/info', methods=['POST'])
@@ -50,6 +52,7 @@ def addDisasterInfo():
     # Return a response
     return jsonify(disasterRecord=disaser_data,message='Disaster info added successfully'), 200
 
+############################## Get Disaster Types  ###################################
 
 @disaster_routes.route('/disasters/type', methods=['GET'])
 def getTypes():
@@ -62,6 +65,7 @@ def getTypes():
     # Return a response
     return jsonify(disasterTypes=disaster_types), 200
 
+############################## Disaster Information Search ###################################
 
 @disaster_routes.route('/disaster-info/search', methods=['GET'])
 def search_disaster_info():
@@ -100,6 +104,7 @@ def search_disaster_info():
     return jsonify({
         'disasters': [{
             'disaster_info_id': result.DisasterInfo.disaster_info_id,
+            'farmer_id':result.Farmer.user_id,
             'date': result.DisasterInfo.date,
             'type': result.DisasterInfo.type,
             'crop_id': result.Crop.crop_id,
@@ -112,3 +117,70 @@ def search_disaster_info():
         'per_page': pagination.per_page,
         'total_items': pagination.total
     }), 200
+    
+############################## Get Disaster  Records by record id ###################################
+
+@disaster_routes.route('/disaster-info/<int:disaster_info_id>', methods=['GET'])
+@jwt_required()
+def getDisasterRecords(disaster_info_id):
+    disaster_info=DisasterInfo.query.get(disaster_info_id)
+    if not disaster_info:
+        return jsonify(message='No record found'),404
+    result=disaster_info_schema.dump(disaster_info)
+    return jsonify(disasterInfo = result), 200
+  
+############################## Update Disaster  Records by record id ###################################
+
+@disaster_routes.route('/disaster-info/<int:disaster_info_id>', methods=['PUT'])
+@jwt_required()
+def update_disaster_record(disaster_info_id):
+    
+    disaster_record = DisasterInfo.query.get(disaster_info_id)
+    
+    if not disaster_record:
+        return jsonify(message='Record info not found'), 404 
+
+    if 'cultivation_info_id' in request.json:
+        disaster_record.cultivation_info_id = request.json['cultivation_info_id']
+
+    if 'damaged_area' in request.json:
+        disaster_record.damaged_area = request.json['damaged_area']
+
+    if 'date' in request.json:
+        disaster_record.date = parse_date(request.json['date'])
+
+    if 'disaster_info_id' in request.json:
+        disaster_record.disaster_info_id = request.json['disaster_info_id']
+
+    if 'estimated_damaged_harvest' in request.json:
+        disaster_record.estimated_damaged_harvest = request.json['estimated_damaged_harvest']
+
+    if 'estimated_damaged_harvest_value' in request.json:
+        disaster_record.estimated_damaged_harvest_value = request.json['estimated_damaged_harvest_value']
+
+    if 'type' in request.json:
+        disaster_record.type = request.json['type']
+
+  
+    db.session.commit()
+
+    return jsonify({'message': 'Record updated successfully!'}),200
+
+  ############################## Update Disaster  Records by record id ###################################
+  
+@disaster_routes.route('/disaster-info/<int:disaster_info_id>',methods = ['DELETE'])
+@jwt_required()
+def delete_disaster_record(disaster_info_id):
+    disaster_record = DisasterInfo.query.get(disaster_info_id)
+    if not disaster_record:
+        return jsonify(message = 'Record not found'),404
+    db.session.delete(disaster_record)
+    db.session.commit()
+    return jsonify({'message':'Record was deleted successfully!'}), 200
+    
+    
+    
+    
+    
+    
+ 

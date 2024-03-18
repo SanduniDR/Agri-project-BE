@@ -408,6 +408,8 @@ def update_monetary_aid(id):
 
     return jsonify({'message': 'Monetary aid updated successfully!'})
 
+####################### Add Aid Distribution Record #############################
+
 @aid_routes.route('/aid-distribution', methods=['POST'])
 @jwt_required()
 def add_aid_distribution():
@@ -428,6 +430,9 @@ def add_aid_distribution():
 
     return jsonify({'message': 'New aid distribution added successfully!'})
 
+
+####################### Delete Aid Distribution Record #############################
+
 @aid_routes.route('/aid-distribution/<id>', methods=['DELETE'])
 @jwt_required()
 def delete_aid_distribution(id):
@@ -435,6 +440,8 @@ def delete_aid_distribution(id):
     db.session.delete(aid_distribution)
     db.session.commit()
     return jsonify({'message': 'Aid distribution deleted successfully!'})
+
+####################### Search Aid Distribution Record #############################
 
 @aid_routes.route('/aid-distribution/search', methods=['GET'])
 @jwt_required()
@@ -496,10 +503,29 @@ def search_aid_distribution():
         'total_items': pagination.total
     }), 200
 
+
+####################### Get Aid Distribution Record #############################
+@aid_routes.route('/aid-distribution/<id>' , methods = ['GET'])
+@jwt_required()
+def get_aid_distribution(id):
+    aid_distribution_record=AidDistribution.query.get(id)
+    
+    if not aid_distribution_record:
+        return jsonify(message='Record not Found'),404
+    
+    result=aid_distribution_schema.dump(aid_distribution_record)
+    return jsonify(aid_distribution_record = result), 200
+    
+
+####################### Update Aid Distribution Record #############################
+
 @aid_routes.route('/aid-distribution/<id>', methods=['PUT'])
 @jwt_required()
 def update_aid_distribution(id):
     aid_distribution = AidDistribution.query.get(id)
+    
+    if not aid_distribution:
+        return jsonify(message='Aid record info not found'), 404 
 
     if 'aid_id' in request.json:
         aid_distribution.aid_id = request.json['aid_id']
@@ -530,7 +556,7 @@ def update_aid_distribution(id):
 
     db.session.commit()
 
-    return jsonify({'message': 'Aid distribution updated successfully!'})
+    return jsonify({'message': 'Aid distribution updated successfully!'}),200
 
 
 @aid_routes.route('/fuel-aid/<fuelAid_id>', methods=['GET'])

@@ -2,7 +2,7 @@ from app.service.users.communication_service import add_address, add_contacts, d
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from app.models import Crop, db, User, AgricultureOfficer, AgriOffice, EmailRecord
+from app.models import Crop, db, User, AgricultureOfficer, AgriOffice, EmailRecord,DataRequest
 from app.schemas import address_schema,addresses_schema,contact_schema, email_records_schema
 import datetime
 from app.service.users.util_service import send_gmail
@@ -215,5 +215,24 @@ def search_mail():
         'total_items': pagination.total,
     })
 
-                
+@com_routes.route('/data-request', methods=['POST'])
+# @jwt_required()
+def requestData():
+    user_id = request.json['user_id']
+    message = request.json['message']
+    institute= request.json['institute']
+    date=datetime.date.today()
+    
+    request_data = DataRequest(
+        user_id=user_id,
+        message=message,
+        institute=institute,
+        date=date
+    )
+
+    db.session.add(request_data)
+    db.session.commit()
+
+    # Return a response
+    return jsonify(message='Request Data info added successfully'), 201
             

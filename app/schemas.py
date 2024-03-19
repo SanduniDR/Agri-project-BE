@@ -44,6 +44,10 @@ class FieldAreaSchema(ma.Schema):
 class ReportsSchema(ma.Schema):
     class Meta:
         fields = ('report_id', 'category', 'date', 'time', 'user_id', 'link')
+        
+class DataRequestSchema(ma.Schema):
+    class Meta:
+        fields = ('request_id', 'user_id', 'message', 'date', 'institute')
 
 class FarmerSchema(ma.Schema):
     class Meta:
@@ -139,6 +143,7 @@ fuel_schema = FuelSchema()
 miscellaneous_aids_schema = MiscellaneousAidsSchema()
 aid_distribution_schema = AidDistributionSchema()
 email_record_schema = EmailRecordSchema()
+data_request_schema=DataRequestSchema()
 
 # For schemas representing multiple instances
 users_schema = UserSchema(many=True)
@@ -167,4 +172,5 @@ fuels_schema = FuelSchema(many=True)
 miscellaneous_aids_schemas = MiscellaneousAidsSchema(many=True)
 aid_distributions_schema = AidDistributionSchema(many=True)
 email_records_schema = EmailRecordSchema(many=True)
+data_requests_schema=DataRequestSchema(many=True)
 

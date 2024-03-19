@@ -97,6 +97,15 @@ class Reports(db.Model):
     user_id = Column(Integer, ForeignKey('user.user_id'))
     link = Column(String(100))
     user = relationship("User", backref="reports")
+    
+class DataRequest(db.Model):
+    __tablename__ = 'datarequest'
+    request_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.user_id'))
+    message = Column(String(100))
+    date = Column(Date)
+    institute = Column(String(100))
+    user = relationship("User", backref="data_requests")
 
 class Farmer(db.Model):
     __tablename__ = 'farmer'

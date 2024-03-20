@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.models import Crop, db, User, AgricultureOfficer, AgriOffice, EmailRecord,DataRequest
-from app.schemas import address_schema,addresses_schema,contact_schema, email_records_schema
+from app.schemas import address_schema,addresses_schema,contact_schema, email_records_schema,data_requests_schema
 import datetime
 from app.service.users.util_service import send_gmail
 import config
@@ -236,3 +236,21 @@ def requestData():
     # Return a response
     return jsonify(message='Request Data info added successfully'), 201
             
+@com_routes.route('/get-data-requests', methods=['POST'])
+def get_requests():
+    data = request.get_json()
+    page = data.get('page', 1)
+    per_page = data.get('per_page', 10)
+
+    filter_conditions = []
+    pagination = db.session.query(DataRequest).filter(*filter_conditions).paginate(page=page, per_page=per_page)
+    records = pagination.items
+    result = data_requests_schema.dump(records)
+
+    return jsonify({
+        'requests': result,
+        'total_pages': pagination.pages,
+        'current_page': pagination.page,
+        'per_page': pagination.per_page,
+        'total_items': pagination.total,
+    })

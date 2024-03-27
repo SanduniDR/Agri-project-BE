@@ -1,9 +1,9 @@
-from app.service.users.communication_service import add_address, add_contacts, delete_address_by_id, delete_contact_by_id, get_all_addresses, search_address_by_Id, search_by_userId, update_address_by_id
+from app.service.users.communication_service import add_address, add_contacts, add_sentDataRecord_to_system, delete_address_by_id, delete_contact_by_id, delete_request_by_id, get_all_addresses, search_address_by_Id, search_by_userId, update_address_by_id
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from app.models import Crop, db, User, AgricultureOfficer, AgriOffice, EmailRecord,DataRequest
-from app.schemas import address_schema,addresses_schema,contact_schema, email_records_schema,data_requests_schema
+from app.models import Crop, db, User, AgricultureOfficer, AgriOffice, EmailRecord,DataRequest,Reports
+from app.schemas import address_schema,addresses_schema,contact_schema, email_records_schema,data_requests_schema,report_schema
 import datetime
 from app.service.users.util_service import send_gmail
 import config
@@ -254,3 +254,25 @@ def get_requests():
         'per_page': pagination.per_page,
         'total_items': pagination.total,
     })
+    
+@com_routes.route('/data-request/delete/<request_id>',methods=['DELETE'])
+@jwt_required()
+def delete_request(request_id):
+            isSucceed,data=delete_request_by_id(request_id)
+            if isSucceed:
+                return jsonify(address=data, deleted=True), 200
+            else:
+                return jsonify(message="This request_id  is not valid"), 400
+
+@com_routes.route('/sent-data', methods=['POST'])
+@jwt_required()
+def update_requestData_sent():
+    data = request.get_json()
+    date=datetime.date.today()
+    isSucceed, message, new_record=add_sentDataRecord_to_system(data,date)
+    if isSucceed:
+        return report_schema.jsonify(new_record),200
+    elif not isSucceed and message=="Unauthorized to access this resource":
+        jsonify(message=message), 403
+    else:
+        return jsonify(message=message), 500

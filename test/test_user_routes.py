@@ -267,24 +267,7 @@ class TestUserRoutes(unittest.TestCase):
             self.assertEqual(len(result['users']), 2)
             self.assertTrue(all(user['first_name'] == 'Test' for user in result['users']))
 
-    # def test_search_user_pagination(self):
-    #     """Test searching users with pagination."""
-    #     with self.app.app_context():
-    #         # Assume users are added from a previous test or during setup
-
-    #         # Define filters to search for all users, but only get the second page
-    #         filters = {'page': 2, 'per_page': 1}
-
-    #         # Act: Search users using the filters for pagination
-    #         result = Search_User(filters)
-
-    #         # Assert: Validate pagination works as expected
-    #         self.assertEqual(result['page'], 2)
-    #         self.assertEqual(result['per_page'], 1)
-    #         self.assertTrue(result['total_pages'] >= 2)  # Assuming at least 2 users exist
-    #         self.assertTrue(result['total_users'] >= 2)  # Assuming at least 2 users exist
-    #         self.assertEqual(len(result['users']), 1)  # Should have 1 user on the second page if per_page is 1
-    
+   
     
     def test_validate_user_success(self):
         # Test user validation succeeds when email and user_id match.
@@ -358,49 +341,7 @@ class TestUserRoutes(unittest.TestCase):
             self.assertEqual(retrieved_user.role, 2)
             # Add any other assertions for fields you care about
             
-            
-    # @patch('app.service.users.user_service.decode_token')
-    # def test_check_user_token_not_expired(self, mock_decode_token):
-    #     """Test checking a user token that has not expired."""
-    #     with self.app.app_context():
-    #         # Correct import used here
-    #         future_expiration = datetime.utcnow() + timedelta(hours=1)
-    #         mock_decode_token.return_value = {'exp': future_expiration.timestamp()}
-
-    #         # Assuming jwt.encode is used correctly with the current application context
-    #         token = jwt.encode({'exp': future_expiration}, current_app.config['JWT_SECRET_KEY'], algorithm="HS256")
-
-    #         # Assuming Check_User_Token_Expiration is defined correctly and imported
-    #         is_expired = Check_User_Token_Expiration(token)
-
-    #         # Assert the token is not expired
-    #         self.assertFalse(is_expired)
-
-
-    # @patch('app.service.users.user_service.decode_token')
-    # def test_check_user_token_expired(self, mock_decode_token):
-    #     """Test checking a user token that has expired."""
-    #     with self.app.app_context():
-    #         # Mock the decode_token to return a past expiration timestamp
-    #         past_expiration = datetime.utcnow() - timedelta(hours=1)
-    #         mock_decode_token.return_value = {'exp': past_expiration.timestamp()}
-
-    #         # Use Flask's current_app to access the app configuration
-    #         token = jwt.encode({'exp': past_expiration}, current_app.config['JWT_SECRET_KEY'], algorithm="HS256")
-
-    #         # Call the Check_User_Token_Expiration function
-    #         is_expired = Check_User_Token_Expiration(token)
-
-    #         # Assert the token is expired
-    #         self.assertTrue(is_expired)
-    
-    
-    
-#     add_farmer_to_system function within your TestUserRoutes class, we'll write unit tests to verify that:
-
-# An admin user can successfully add a farmer.
-# A non-admin user cannot add a farmer and receives an unauthorized access message.
-
+   
 
 
 if __name__ == '__main__':

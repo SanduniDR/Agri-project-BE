@@ -84,6 +84,8 @@ def update_advertisement(advertisement_id):
     # Return the updated advertisement as JSON response
     return advertisement_schema.jsonify(advertisement)
 
+#######################Approve Advertisements##########################
+
 @market_routes.route('/approve/advertisement', methods=['PUT'])
 @jwt_required()
 def approve_advertisement():
@@ -126,6 +128,7 @@ def get_advertisement(advertisement_id):
     return advertisement_schema.jsonify(advertisement)
 
 
+################# get all advertisements###################################
 
 @market_routes.route('/my_advertisement', methods=['GET'])
 @jwt_required()
@@ -148,27 +151,33 @@ def get_my_advertisements():
     pagination = query.paginate(page=page, per_page=per_page)
     # Get the advertisements from the pagination object
     advertisements = pagination.items
-
-    # Return the advertisements as JSON response
-    return jsonify({
-        'data': advertisements_schema.dump(advertisements),
-        'total_pages': pagination.pages,
-        'current_page': pagination.page,
-        'per_page': pagination.per_page,
-        'total_items': pagination.total
-    }), 200
-from flask import request
+    all_advertisements = advertisements_schema.dump(advertisements)
+    
+    if not all_advertisements:
+        return jsonify(message='No Advertisements are published !'), 404
+    else:
+        # Return the advertisements as JSON response
+        return jsonify({
+            'data': all_advertisements,
+            'total_pages': pagination.pages,
+            'current_page': pagination.page,
+            'per_page': pagination.per_page,
+            'total_items': pagination.total
+        }), 200
+    
+######################## Get All Ads by region ##############################
 
 @market_routes.route('/officer/regional/ads', methods=['GET'])
 @jwt_required()
 def get_regional_advertisements():
     # Get the current user's identity
     token_user_id = get_jwt_identity()
-
+    print(token_user_id)
     # Get the current user's role
     current_user = User.query.get(token_user_id)
     print(current_user)
     current_user_role = current_user.role
+    current_user_id = current_user.user_id
 
     # Check if the current user is an Agriculture Officer
     if current_user_role != 4:
@@ -184,7 +193,12 @@ def get_regional_advertisements():
 
     # Get all user_ids of these farmers
     farmer_user_ids = [farmer.user_id for farmer in farmers]
+    
+    farmer_user_ids.append(current_user_id)
+    advertisementsAddedUsersIds = farmer_user_ids
 
+    # advertisementsAddedUsersIds = farmer_user_ids.append(current_user_id)
+    print(advertisementsAddedUsersIds)
     # Get page and per_page parameters from the request
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
@@ -262,8 +276,7 @@ def get_advertisement_image(advertisement_id):
     # Get the image filename from the advertisement
     image_filename = advertisement.image_link
 
-    # Define the directory where your images are stored
-    # Replace 'your_directory' with the path to the directory where your images are stored
+    # Define the directory where  images are stored
     image_directory = 'app\images\advertisement'
 
     # Send the image file

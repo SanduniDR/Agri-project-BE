@@ -4,11 +4,11 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, decode_token
 from app.models import User, Farmer, db, AgricultureOfficer
 from flask_mail import Message, Mail
-from app.schemas import user_schema, farmer_schema, farmers_schema, users_schema,vendor_schema
+from app.schemas import user_schema, farmer_schema, farmers_schema, users_schema,vendor_schema,researcher_schema
 import logging
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
-from app.service.users.user_service import  add_new_agri_officer,update_agri_officer,search_officers,Check_User_Token_Expiration, Get_User_Information, Search_User, Update_User, Validate_User, add_farmer_to_system, add_vendor_to_system, delete_farmer_from, delete_vendor_by_UserId, get_all_farmers, get_all_users, get_farmer_by_Id, get_farmer_details_by_Id, getUserBy_Email, getUserBy_Id, deleteUser, get_access_token, getUserBy_Role, register_user, isExistingUser, retrieve_user_password, search_existing_farmers, update_farmer_details, user_login
+from app.service.users.user_service import  Update_Researcher, add_new_agri_officer,update_agri_officer,search_officers,Check_User_Token_Expiration, Get_User_Information, Search_User, Update_User, Validate_User, add_farmer_to_system, add_vendor_to_system, delete_farmer_from, delete_vendor_by_UserId, get_all_farmers, get_all_users, get_farmer_by_Id, get_farmer_details_by_Id, getUserBy_Email, getUserBy_Id, deleteUser, get_access_token, getUserBy_Role, register_user, isExistingUser, retrieve_user_password, search_existing_farmers, update_farmer_details, user_login
 from app.service.users.util_service import parse_date
 from datetime import timedelta
 
@@ -66,10 +66,14 @@ def login():
 
     user = User( email=email, password=password)
     user = user_login(user)
-    userEmail=user.email
-    userFname=user.first_name
-    userLname=user.last_name
-    user_id=user.user_id
+    
+    if user:
+        userEmail=user.email
+        userFname=user.first_name
+        userLname=user.last_name
+        user_id=user.user_id
+    else:
+        return jsonify(message='Login Failed! ,Error in Username or Password'), 404
     
     if user:
         access_token = get_access_token(user)
@@ -408,7 +412,13 @@ def get_officers_by_district(district):
 def register_new_officer():
     data = request.get_json()
     user_id = data.get('user_id')
+    # check whether already registered office
+    officer = AgricultureOfficer.query.get(user_id)
+    if (officer) :
+        return 'Already registered user as officer', 409     
+    print(user_id)
     success, new_officer, message = add_new_agri_officer(data, user_id)
+    print(success, new_officer, message)
     if not success:
         return jsonify({"error": message}), 400
 
@@ -451,3 +461,15 @@ def search():
 
     result = search_officers(office_id, employee_id, field_area_id, user_id, district, page, per_page)
     return jsonify(result), 200
+
+@user_routes.route('/add-researcher', methods=['POST'])
+@jwt_required()
+def add_researcher():
+
+        # Get the data from the request
+        data = request.get_json()
+        isSucceed, message, new_researcher=Update_Researcher(data)
+        if isSucceed:
+            return farmer_schema.jsonify(new_researcher),200
+        else:
+            return jsonify(message=message), 500

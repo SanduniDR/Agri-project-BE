@@ -2,11 +2,12 @@ from datetime import timedelta
 import datetime
 import logging
 from app.schemas import user_schema
+from app.service.users.user_service import Update_Researcher, Update_User
 from app.service.users.util_service import parse_date
 from flask_jwt_extended import create_access_token,decode_token
-from app.models import Address, Contact, User, Farmer, db
+from app.models import Address, Contact, User, Farmer,DataRequest,Reports, db
 from flask_mail import Message, Mail
-from app.schemas import users_schema,farmer_schema,address_schema,addresses_schema,contact_schema,contacts_schema
+from app.schemas import users_schema,farmer_schema,address_schema,addresses_schema,contact_schema,contacts_schema,data_request_schema
 from sqlalchemy import or_, cast, String
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -171,8 +172,32 @@ def search_by_userId(user_id, page, per_page):
     }   
     return result  
 
-
+def delete_request_by_id(request_id):
+    try:
+        request = DataRequest.query.get(request_id)
+        request_data=data_request_schema.dump(request)
+        db.session.delete(request)
+        db.session.commit()
+        return True, request_data
+    except Exception as e:
+            db.session.rollback()
+            error_message = f"An error occurred while deleting request details:  {str(e)}"
+            logging.error(error_message)
+            return False, {} 
     
+def add_sentDataRecord_to_system (data,date):
+    new_record = Reports(**data)
+    new_record.date=parse_date(date.strftime('%Y-%m-%d'))
+      
+    # Add the new record to the database session
+    db.session.add(new_record)
+    
+    db.session.commit()
+    message="Successfully added record !"
+
+    # Return the JSON representation of the new farmer
+    return True, message, new_record
+
     
 # def get_all_contacts():
     

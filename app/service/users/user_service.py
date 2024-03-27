@@ -5,7 +5,7 @@ from app.schemas import user_schema
 from app.service.users.util_service import parse_date
 from flask_jwt_extended import create_access_token,decode_token
 from app.models import AgricultureOfficer, AgriOffice, FieldArea
-from app.models import Address, AidDistribution, Contact, CultivationInfo, DisasterInfo, Farm, User, Farmer,Vendor, db
+from app.models import Address, AidDistribution, Contact, CultivationInfo, DisasterInfo, Farm, User, Farmer,Vendor,Researcher, db
 from flask_mail import Message, Mail
 from app.schemas import users_schema,farmer_schema,vendor_schema, agriculture_officer_schema, agri_office_schema, field_area_schema
 from app.schemas import disaster_infos_schema,aid_distributions_schema,addresses_schema,contacts_schema,users_schema,farmer_schema,vendor_schema,farm_schema,cultivation_info_schema,disaster_info_schema,aid_distribution_schema,contact_schema,address_schema
@@ -35,7 +35,8 @@ def isExistingUser(user):
     
 def  user_login(user):
     user=User.query.filter_by(email=user.email, password=user.password).first()
-    return user  
+    return user
+     
 
 def get_access_token(user):
         access_token = create_access_token(identity=user.user_id, expires_delta=timedelta(days=1))
@@ -613,3 +614,34 @@ def search_existing_farmers_By_Append(office_id, tax_file_no, field_area_id, use
         } for farmer in farmers.items]
     }   
     return result
+
+
+################### Add Sent persona to Researcher table if role is 2 and not a farmer #######
+def Update_Researcher(data):
+    
+    try:
+            
+            # Create a new instance of the Researcher model with the data
+            new_researcher = Researcher(**data)
+                       
+            user = User.query.get(new_researcher.user_id)
+            
+            if user.role == 2:
+                data = {'role': 6}
+                Update_User(data, user)
+                # Add the new researcher to the database session
+                db.session.add(new_researcher)
+                # Commit the changes to the database
+                db.session.commit()
+                message="Successfully added researcher"
+
+                # Return the JSON representation of the new farmer
+                return True, message, new_researcher
+            else:
+                return False, "Not a Researcher", {}
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(e)
+        message=f"Researcher adding to system failure, please check this user is already in researcher table:{str(e)}"
+        return False, message, {}

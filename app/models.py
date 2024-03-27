@@ -98,6 +98,7 @@ class Reports(db.Model):
     link = Column(String(100))
     user = relationship("User", backref="reports")
     
+    
 class DataRequest(db.Model):
     __tablename__ = 'datarequest'
     request_id = Column(Integer, primary_key=True)

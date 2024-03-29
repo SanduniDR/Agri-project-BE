@@ -59,7 +59,7 @@ def getTypes():
     # Query the disaster_info table
     disaster_info_records = DisasterInfo.query.all()
 
-    # Get all unique disaster types
+    # Get all unique disaster types bcz of converting of set (_set_;uniq)
     disaster_types = list(set([record.type for record in disaster_info_records]))
 
     # Return a response

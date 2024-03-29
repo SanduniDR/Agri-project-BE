@@ -41,6 +41,7 @@ def add_CultivationInfo():
         estimated_harvest=data['estimated_harvest'],
         agri_year=data['agri_year'],
         quarter=data['quarter'],
+        season=data['season'],
         added_by=get_jwt_identity(),
         updated_by=get_jwt_identity(),
         added_date=datetime.date.today()
@@ -103,6 +104,7 @@ def update_CultivationInfo(cultivation_id):
     cultivation_info.estimated_harvest = data['estimated_harvest']
     cultivation_info.agri_year = data['agri_year']
     cultivation_info.quarter = data['quarter']
+    cultivation_info.harvested_date = data ['harvested_date']
     cultivation_info.updated_by = get_jwt_identity()
 
     # Check if harvested_date and harvested_amount are provided

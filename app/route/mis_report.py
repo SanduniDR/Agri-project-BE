@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 from flask import request
-from app.models import MiscellaneousAids, MonetaryAid, Fuel, Advertisement, Pesticides, AgricultureOfficer, AidDistribution, Farmer, Fertilizer, Pesticides, RegionalAdmin, Researcher, SuperAdmin, User, Vendor, Role, db
+from app.models import MiscellaneousAids, MonetaryAid, Fuel, Advertisement, Pesticides, AgricultureOfficer, AidDistribution, Farmer, Fertilizer, Pesticides, RegionalAdmin, Researcher, SuperAdmin, User, Role, db
 from app.schemas import fuel_schema, miscellaneous_aids_schema, aid_distribution_schema, monetary_aid_schema,pesticide_schema,farms_schema, farm_schema, fertilizers_schema, pesticides_schema, aids_schema, aid_schema, aid_schema, fertilizer_schema
 from app.service.users.util_service import parse_date
 from app.service.users.user_service import search_existing_farmers_By_Append
@@ -24,12 +24,13 @@ def get_user_count_by_role():
         .outerjoin(SuperAdmin, User.user_id == SuperAdmin.user_id)\
         .outerjoin(RegionalAdmin, User.user_id == RegionalAdmin.user_id)\
         .outerjoin(AgricultureOfficer, User.user_id == AgricultureOfficer.user_id)\
-        .outerjoin(Vendor, User.user_id == Vendor.user_id)\
         .outerjoin(Researcher, User.user_id == Researcher.user_id)\
         .group_by(Role.role_name)\
         .all()
 
     return jsonify({role_name: count for role_name, count in role_counts})
+
+###################Total AId Distribution Done within given period######################
 
 @report_routes.route('/aid-distributions/total', methods=['POST'])
 def get_total_aid_distributions():
@@ -41,6 +42,7 @@ def get_total_aid_distributions():
     aid_distribution = {description: amount for description, amount in aid_distributions}
     return jsonify({'total_aid_distributions': aid_distribution})
 
+##################### get AId Distributed amount: get aid types by aid id__(aid_fund_name)############################
 @report_routes.route('/aid-distributions/total-byfund', methods=['POST'])
 def get_total_aid_distributions_byFund():
     data = request.get_json()
@@ -89,6 +91,7 @@ def get_monthly_fertilizer_distributions(year):
 @report_routes.route('/aid-distributions/monthly', methods=['GET'])
 def get_monthly_aid_distributions( ):
     year = request.args.get('year')
+    # print(year)
     description = request.args.get('type')
     fertilizer_distributions = db.session.query(
         extract('month', AidDistribution.date).label('month'),
@@ -112,6 +115,36 @@ def get_monthly_aid_distributions( ):
 
         # Update the total_amount_approved for the month
         monthly_fertilizer_distributions[index]['total_amount_approved'] = float(distribution.total_amount_approved)
+
+    return jsonify(monthly_fertilizer_distributions)
+
+@report_routes.route('/aid-distributions-received/monthly', methods=['GET'])
+def get_monthly_aid_distributions_received( ):
+    year = request.args.get('year')
+    # print(year)
+    description = request.args.get('type')
+    fertilizer_distributions = db.session.query(
+        extract('month', AidDistribution.date).label('month'),
+        func.sum(AidDistribution.amount_received).label('total_amount_received')
+    ).filter(
+        AidDistribution.description == description,
+        extract('year', AidDistribution.date) == year
+    ).group_by(
+        'month'
+    ).order_by(
+        'month'
+    ).all()
+
+    # Initialize a list with 12 dictionaries, one for each month
+    monthly_fertilizer_distributions = [{'month': month, 'total_amount_received': 0.0} for month in range(1, 13)]
+
+    # Update the dictionaries with the actual data
+    for distribution in fertilizer_distributions:
+        # The month in the distribution record is 1-based, so subtract 1 to get the 0-based index
+        index = int(distribution.month) - 1
+
+        # Update the total_amount_approved for the month
+        monthly_fertilizer_distributions[index]['total_amount_received'] = float(distribution.total_amount_received)
 
     return jsonify(monthly_fertilizer_distributions)
 
@@ -342,7 +375,7 @@ def get_user_count_by_district():
 def get_total_user_count_by_district():
     user_counts = db.session.query(
         AgriOffice.district,
-        func.count(User.user_id)
+        func.count(User.user_id) #sqlAlchemy: count operation
     ).join(
         Farmer, User.user_id == Farmer.user_id
     ).join(
@@ -352,6 +385,9 @@ def get_total_user_count_by_district():
     ).all()
 
     return jsonify([{'district': district, 'count': count} for district, count in user_counts])
+
+
+############# GEt Harvest amount by  agri_year ################################
 
 @report_routes.route('/harvest-amount-by-crop/<int:agri_year>', methods=['GET'])
 def get_harvest_amount_by_crop(agri_year):
@@ -378,6 +414,8 @@ def get_harvest_amount_by_crop(agri_year):
         data['crop_name'] = crop.crop_name if crop else 'Unknown'
 
     return jsonify(harvest_amount_by_crop)
+
+###################GEt Estimated Harvest by Year ####################################
 
 @report_routes.route('/estimated-harvest/<int:agri_year>', methods=['GET'])
 def get_estimated_harvest(agri_year):
@@ -544,6 +582,8 @@ def get_offices_by_province_district():
         offices_list.append(office_data)
     return jsonify({'offices': offices_list})
 
+############# Get office list and district list in given province##############
+
 @report_routes.route('/offices-districts/by-province', methods=['GET'])
 def get_all_offices_districts_by_given_province():
     province = request.args.get('province')
@@ -567,6 +607,8 @@ def get_all_offices_districts_by_given_province():
         if office.district not in districts_list:
             districts_list.append(office.district)
     return jsonify({'offices': offices_list, 'districts': districts_list})
+
+##########GEt farmer count by district####################
 
 @report_routes.route('/farmer/total_count-by-district', methods=['GET'])
 def get_farmer_count_by_district():
@@ -613,6 +655,7 @@ def get_total_user_count_by_district_and_province():
     
     return jsonify({office_name: count for office_name, count in user_counts})
 
+
 @report_routes.route('/search_farmers', methods=['GET'])
 def search_farmers():
     # Get the search parameters from the query string
@@ -646,6 +689,21 @@ def get_farmer_tax_payer_count_by_district_year_office():
     # Return the data as a response
     return jsonify(chart_data)
 
+@report_routes.route('/get_info_tax/acre_tax', methods=['GET'])
+def get_tax_payer_info_by_office():
+    district = request.args.get('district')
+    office_id = request.args.get('office_id')
+    
+    query = db.session.query(User.first_name,User.last_name,User.nic,Farmer.tax_file_no).join(Farmer,Farmer.user_id==User.user_id).join(AgriOffice,Farmer.assigned_office_id==AgriOffice.agri_office_id)
+    data = query.filter(Farmer.tax_file_no.isnot(None)).filter(AgriOffice.agri_office_id==office_id).filter(AgriOffice.district==district).all()
+    
+    tax_payer_info = [{'first_name':first_name, 'last_name':last_name, 'nic' :nic, 'tax_file_no':tax_file_no} for first_name,last_name,nic,tax_file_no in data]
+    
+    return jsonify(tax_payer_info)
+
+    
+    
+
 @report_routes.route('/search_tax/all_acre_tax', methods=['GET'])
 def get_all_tax_payer_group_by_district():
     query = db.session.query(AgriOffice.district, func.count(Farmer.user_id)).join(AgriOffice, Farmer.assigned_office_id == AgriOffice.agri_office_id)
@@ -657,6 +715,7 @@ def get_all_tax_payer_group_by_district():
     # Return the data as a response
     return jsonify(chart_data)
 
+###########################Get Agri Offices in given district#########################
 @report_routes.route('/offices/by-district', methods=['GET'])
 def get_offices_by_district():
     district = request.args.get('district')
@@ -758,3 +817,55 @@ def get_monthly_ads_officer_distributions():
         monthly_advertisements_counts[index]['total_ads'] = ad.total_ads
 
     return jsonify(monthly_advertisements_counts)
+
+@report_routes.route('/ads_by_type/monthly', methods=['GET'])
+def get_monthly_ads_count():
+    year = request.args.get('year')
+    type = request.args.get('type')
+    print(year)
+    print(type)
+    monthly_advertisements = db.session.query(
+        extract('month', Advertisement.date).label('month'),
+        func.count(Advertisement.ad_id).label('total_ads')
+    ).filter(
+        extract('year', Advertisement.date) == year,
+        Advertisement.type == type
+    ).group_by(
+        'month'
+    ).order_by(
+        'month'
+    ).all()
+
+    # Initialize a list with 12 dictionaries, one for each month
+    monthly_advertisements_counts = [{'month': month, 'total_ads': 0} for month in range(1, 13)]
+
+    # Update the dictionaries with the actual data
+    for ad in monthly_advertisements:
+        # The month in the ad record is 1-based, so subtract 1 to get the 0-based index
+        index = int(ad.month) - 1
+
+        # Update the total_ads for the month
+        monthly_advertisements_counts[index]['total_ads'] = ad.total_ads
+
+    return jsonify(monthly_advertisements_counts)
+
+# @report_routes.route('/officer/total_count-by-district', methods=['GET'])
+# def get_offier_count_by_district():
+#     district = request.args.get('district')
+
+#     query = db.session.query(
+#         AgriOffice.district,
+#         func.count(User.user_id)
+#     ).join(
+#         AgricultureOfficer, User.user_id == AgricultureOfficer.user_id
+#     ).join(
+#         AgriOffice, AgriOffice.agri_office_id == AgricultureOfficer.field_area_id
+#     )
+
+#     if district:
+#         query = query.filter(AgriOffice.district == district)
+
+#     user_counts = query.group_by(AgriOffice.district).all()
+
+#     return jsonify({district: count for district, count in user_counts})
+

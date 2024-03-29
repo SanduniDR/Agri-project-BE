@@ -64,7 +64,19 @@ def db_create():
 def db_drop():
     db.drop_all()
     print("DB dropped!")
-
+    
+from sqlalchemy import func
+from flask import Blueprint, jsonify, request, abort
+@app.cli.command('db_qrun')
+def db_tester():
+    district = "Galle"
+    office_id = 3
+    query = db.session.query(User.first_name,User.last_name,User.nic,Farmer.tax_file_no).join(Farmer,Farmer.user_id==User.user_id).join(AgriOffice,Farmer.assigned_office_id ==AgriOffice.agri_office_id)
+    data = query.filter(Farmer.tax_file_no.isnot(None)).filter(AgriOffice.agri_office_id==office_id).filter(AgriOffice.district==district).all()
+    
+    tax_payer_info = [{'first_name':first_name, 'last_name':last_name, 'nic' :nic, 'tax_file_no':tax_file_no} for first_name,last_name,nic,tax_file_no in data]
+    
+    print(jsonify(tax_payer_info).data)
 
 @app.cli.command('db_seed')
 def db_seed():

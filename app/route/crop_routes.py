@@ -7,6 +7,7 @@ from app.schemas import crops_schema, crop_schema
 crop_routes = Blueprint('crop', __name__)
 CORS(crop_routes)
 
+################Add Crops####################################
 @crop_routes.route('/add_crop', methods=['POST'])
 @jwt_required()
 def add_crop():

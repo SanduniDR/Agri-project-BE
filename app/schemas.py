@@ -57,10 +57,6 @@ class LoginSchema(ma.Schema):
     class Meta:
         fields = ('user_id', 'username', 'encoded_pw')
 
-class VendorSchema(ma.Schema):
-    class Meta:
-        fields = ('user_id', 'business_reg_no', 'tax_file_no')
-
 class ResearcherSchema(ma.Schema):
     class Meta:
         fields = ('user_id', 'institute')
@@ -128,7 +124,6 @@ field_area_schema = FieldAreaSchema()
 report_schema = ReportsSchema()
 farmer_schema = FarmerSchema()
 login_schema = LoginSchema()
-vendor_schema = VendorSchema()
 researcher_schema = ResearcherSchema()
 advertisement_schema = AdvertisementSchema()
 farm_schema = FarmSchema()
@@ -157,7 +152,6 @@ field_areas_schema = FieldAreaSchema(many=True)
 reports_schemas = ReportsSchema(many=True)
 farmers_schema = FarmerSchema(many=True)
 logins_schema = LoginSchema(many=True)
-vendors_schema = VendorSchema(many=True)
 researchers_schema = ResearcherSchema(many=True)
 advertisements_schema = AdvertisementSchema(many=True)
 farms_schema = FarmSchema(many=True)

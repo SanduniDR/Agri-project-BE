@@ -4,11 +4,11 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, decode_token
 from app.models import User, Farmer, db, AgricultureOfficer
 from flask_mail import Message, Mail
-from app.schemas import user_schema, farmer_schema, farmers_schema, users_schema,vendor_schema,researcher_schema
+from app.schemas import user_schema, farmer_schema, farmers_schema, users_schema,researcher_schema
 import logging
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
-from app.service.users.user_service import  Update_Researcher, add_new_agri_officer,update_agri_officer,search_officers,Check_User_Token_Expiration, Get_User_Information, Search_User, Update_User, Validate_User, add_farmer_to_system, add_vendor_to_system, delete_farmer_from, delete_vendor_by_UserId, get_all_farmers, get_all_users, get_farmer_by_Id, get_farmer_details_by_Id, getUserBy_Email, getUserBy_Id, deleteUser, get_access_token, getUserBy_Role, register_user, isExistingUser, retrieve_user_password, search_existing_farmers, update_farmer_details, user_login
+from app.service.users.user_service import  Update_Researcher, add_new_agri_officer,update_agri_officer,search_officers,Check_User_Token_Expiration, Get_User_Information, Search_User, Update_User, Validate_User, add_farmer_to_system, delete_farmer_from, get_all_farmers, get_all_users, get_farmer_by_Id, get_farmer_details_by_Id, getUserBy_Email, getUserBy_Id, deleteUser, get_access_token, getUserBy_Role, register_user, isExistingUser, retrieve_user_password, search_existing_farmers, update_farmer_details, user_login
 from app.service.users.util_service import parse_date
 from datetime import timedelta
 
@@ -150,16 +150,6 @@ def find_user_by_role():
         return jsonify(message="Unauthorized to access this resource"), 403
 
 
-
-
-
-
-
-
-
-
-
-
 ########################  Delete User ################################
 @user_routes.route('/<int:userid>', methods=['DELETE'])
 @jwt_required()
@@ -254,6 +244,8 @@ def checkTokenExpiration():
    
     return jsonify(is_expired=is_expired)
 
+
+
 ###########################################################################
 #Farmer Routes
 ###########################################################################                         
@@ -275,8 +267,7 @@ def add_farmer():
         else:
             return jsonify(message=message), 500
 
-#################################### Get Farmer Details ########################################
-#All Farmers##################################
+#################################### Get All Farmer Details ########################################
 @user_routes.route('/farmer', methods=['GET'])
 @jwt_required()
 def get_farmers():
@@ -286,7 +277,7 @@ def get_farmers():
     else:
         return jsonify(message=message)
 
-#Get Farmer By Id #############################
+##################################### Get Farmer By Id #############################
 @user_routes.route('/farmer/<id>', methods=['GET'])
 @jwt_required()
 def get_farmer(id):
@@ -348,41 +339,9 @@ def get_detailed_farmer(id):
 
 
 
-###########################################################################
-#Vendor Routes
-###########################################################################                         
 
-############################ Add Vendor ###################################
-
-@user_routes.route('/vendor', methods=['POST'])
-@jwt_required()
-def add_vendor():
-        # Get the data from the request
-        # user_id = request.json['user_id']
-        data = request.get_json()
-        user_id = data.get('user_id')
-        current_user_id = get_jwt_identity()
-        
-        isSucceed, message, new_vendor=add_vendor_to_system(user_id, current_user_id, data)
-        if isSucceed:
-            return vendor_schema.jsonify(new_vendor)
-        elif not isSucceed and message=="Unauthorized to access this resource":
-            jsonify(message=message), 403
-        else:
-            return jsonify(message=message), 500
-        
-        
-@user_routes.route('/vendor/<user_id>', methods=['DELETE'])
-@jwt_required()
-def delete_vendor(user_id):
-    isSucceed,vendor_data,user_data = delete_vendor_by_UserId(user_id)
-    if isSucceed:
-        return jsonify(vendor=vendor_data, user=user_data, deleted=True), 200
-    else:
-        return jsonify(message="This vendor does not exist !"), 400
     
-    
-###################
+###################Get farmers in officer field area and office################
 @user_routes.route('/officer/<int:officer_id>/farmer', methods=['GET'])
 def get_farmers_by_officer(officer_id):
     officer = AgricultureOfficer.query.get(officer_id)
@@ -424,7 +383,8 @@ def register_new_officer():
 
     return jsonify(new_officer), 201
 
-#######################Delete Officer
+#########################################Officer Routes############################
+####################### Delete Officer ###########################################
 @user_routes.route('/officer/<int:user_id>', methods=['DELETE'])
 def delete_officer(user_id):
     # Get the officer

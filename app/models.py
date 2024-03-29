@@ -128,13 +128,6 @@ class Login(db.Model):
     encoded_pw = Column(String(100))
     user = relationship("User", backref="logins")
 
-class Vendor(db.Model):
-    __tablename__ = 'vendor'
-    user_id = Column(Integer, ForeignKey('user.user_id'),primary_key=True)
-    business_reg_no = Column(String(100))
-    tax_file_no = Column(String(100))
-    user = relationship("User", backref="vendors")
-
 class Researcher(db.Model):
     __tablename__ = 'researcher'
     user_id = Column(Integer, ForeignKey('user.user_id'),primary_key=True)

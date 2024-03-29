@@ -5,10 +5,10 @@ from app.schemas import user_schema
 from app.service.users.util_service import parse_date
 from flask_jwt_extended import create_access_token,decode_token
 from app.models import AgricultureOfficer, AgriOffice, FieldArea
-from app.models import Address, AidDistribution, Contact, CultivationInfo, DisasterInfo, Farm, User, Farmer,Vendor,Researcher, db
+from app.models import Address, AidDistribution, Contact, CultivationInfo, DisasterInfo, Farm, User, Farmer,Researcher, db
 from flask_mail import Message, Mail
-from app.schemas import users_schema,farmer_schema,vendor_schema, agriculture_officer_schema, agri_office_schema, field_area_schema
-from app.schemas import disaster_infos_schema,aid_distributions_schema,addresses_schema,contacts_schema,users_schema,farmer_schema,vendor_schema,farm_schema,cultivation_info_schema,disaster_info_schema,aid_distribution_schema,contact_schema,address_schema
+from app.schemas import users_schema,farmer_schema, agriculture_officer_schema, agri_office_schema, field_area_schema
+from app.schemas import disaster_infos_schema,aid_distributions_schema,addresses_schema,contacts_schema,users_schema,farmer_schema,farm_schema,cultivation_info_schema,disaster_info_schema,aid_distribution_schema,contact_schema,address_schema
 from sqlalchemy import or_, cast, String, and_
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -373,80 +373,73 @@ def get_farmer_details_by_Id(user_id):
         error_message = f"An error occurred while fetching detailed farmer info:  {str(e)}"
         return False, error_message, {}
 
-
-
-
-
-
-
-
-
-########################################################################################
-                            #    User:Vendor 
-########################################################################################
+# ########################################################################################
+#                             #    User:Vendor 
+# ########################################################################################
            
- ###Add Vendor
-def add_vendor_to_system(user_id, current_user_id, data):
+#  ###Add Vendor
+# def add_vendor_to_system(user_id, current_user_id, data):
     
-    try:
-       db.session.query(User).filter_by(user_id=user_id).one()
-    except NoResultFound:
-        message = "Vendor not registered as a user, Register in the system first."
-        logging.error(message)
-        return False, message, {}
+#     try:
+#        db.session.query(User).filter_by(user_id=user_id).one()
+#     except NoResultFound:
+#         message = "Vendor not registered as a user, Register in the system first."
+#         logging.error(message)
+#         return False, message, {}
     
-    try:
-        # Check if the current user is an admin (modify 'admin' to your actual admin role)
-        current_user = User.query.filter_by(user_id=current_user_id).first()
-        if current_user.role not in [1, 3, 4]:
-            message="Unauthorized to access this resource"
-            return False, message, {}
-        else:      
-            # Create a new instance of the Farmer model with the data
-            new_vendor = Vendor(**data)
-            new_vendor.user_id=user_id
+#     try:
+#         # Check if the current user is an admin (modify 'admin' to your actual admin role)
+#         current_user = User.query.filter_by(user_id=current_user_id).first()
+#         if current_user.role not in [1, 3, 4]:
+#             message="Unauthorized to access this resource"
+#             return False, message, {}
+#         else:      
+#             # Create a new instance of the Farmer model with the data
+#             new_vendor = Vendor(**data)
+#             new_vendor.user_id=user_id
 
-            # Add the new farmer to the database session
-            db.session.add(new_vendor)
+#             # Add the new farmer to the database session
+#             db.session.add(new_vendor)
             
-            # Commit the changes to the database
-            db.session.commit()
-            message="Successfully added vendor details"
+#             # Commit the changes to the database
+#             db.session.commit()
+#             message="Successfully added vendor details"
 
-            # Return the JSON representation of the new farmer
-            return True, message, new_vendor
+#             # Return the JSON representation of the new farmer
+#             return True, message, new_vendor
         
-    except Exception as e:
-        db.session.rollback()
-        logging.error(e)
-        message=f" Adding vendor failure, Already has records from this user_id in vendor table:{str(e)}"
-        return False, message, {}
+#     except Exception as e:
+#         db.session.rollback()
+#         logging.error(e)
+#         message=f" Adding vendor failure, Already has records from this user_id in vendor table:{str(e)}"
+#         return False, message, {}
     
- ###Delete Vendor
-def delete_vendor_by_UserId(user_id): 
+#  ###Delete Vendor
+# def delete_vendor_by_UserId(user_id): 
     
-    try:
-        vendor = Vendor.query.get(user_id)
-        user = User.query.get(vendor.user_id)  # Fetch the associated user
+#     try:
+#         vendor = Vendor.query.get(user_id)
+#         user = User.query.get(vendor.user_id)  # Fetch the associated user
         
-        # farmers = Farmer.query.filter_by(user_id=user.user_id).all()
-        # for farmer in farmers:
-        #     db.session.delete(farmer)
+#         # farmers = Farmer.query.filter_by(user_id=user.user_id).all()
+#         # for farmer in farmers:
+#         #     db.session.delete(farmer)
         
-        vendor_data = vendor_schema.dump(vendor)
-        user_data = user_schema.dump(user)  # Dump the user data
-        db.session.delete(vendor)
-        db.session.delete(user)  # Delete the user
-        db.session.commit()
-        return True, vendor_data, user_data
-    except Exception as e:
-            db.session.rollback()
-            error_message = f"An error occurred while deleting vendor :  {str(e)}"
-            logging.error(error_message)
-            return False, {}, {}
- ###Get Vendor 
- ###Update Vendor
- ###Search Vendor  
+#         vendor_data = vendor_schema.dump(vendor)
+#         user_data = user_schema.dump(user)  # Dump the user data
+#         db.session.delete(vendor)
+#         db.session.delete(user)  # Delete the user
+#         db.session.commit()
+#         return True, vendor_data, user_data
+#     except Exception as e:
+#             db.session.rollback()
+#             error_message = f"An error occurred while deleting vendor :  {str(e)}"
+#             logging.error(error_message)
+#             return False, {}, {}
+#  ###Get Vendor 
+#  ###Update Vendor
+#  ###Search Vendor  
+
 def search_existing_farmers_By_Append(office_id, tax_file_no, field_area_id, user_id, page, per_page):
 
     # Start with a query that selects all farmers

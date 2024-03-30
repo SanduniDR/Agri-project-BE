@@ -869,3 +869,14 @@ def get_monthly_ads_count():
 
 #     return jsonify({district: count for district, count in user_counts})
 
+@report_routes.route('/farmer_mails_by_office_Id', methods=['GET'])
+def get_farmer_mails_by_office_Id():
+    office_id= request.args.get('office_id')
+    if not office_id:
+        return jsonify({'error': 'Office ID parameter is missing'})
+    farmersMails = db.session.query(User.email).join(Farmer, User.user_id == Farmer.user_id).\
+                    join(AgriOffice, Farmer.assigned_office_id == AgriOffice.agri_office_id).\
+                    filter(AgriOffice.agri_office_id == office_id).all()
+    print(farmersMails)
+    farmersMails_list = [email for email, in farmersMails]
+    return jsonify({'farmer_mails': farmersMails_list})

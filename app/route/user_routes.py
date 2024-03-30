@@ -11,6 +11,7 @@ from datetime import datetime
 from app.service.users.user_service import  Update_Researcher, add_new_agri_officer,update_agri_officer,search_officers,Check_User_Token_Expiration, Get_User_Information, Search_User, Update_User, Validate_User, add_farmer_to_system, delete_farmer_from, get_all_farmers, get_all_users, get_farmer_by_Id, get_farmer_details_by_Id, getUserBy_Email, getUserBy_Id, deleteUser, get_access_token, getUserBy_Role, register_user, isExistingUser, retrieve_user_password, search_existing_farmers, update_farmer_details, user_login
 from app.service.users.util_service import parse_date
 from datetime import timedelta
+import hashlib
 
 #######################################################
 # User route
@@ -34,7 +35,7 @@ def register():
         first_name = request.json['first_name']
         middle_name = request.json['middle_name']
         last_name = request.json['last_name']
-        password = request.json['password']
+        password = hashlib.sha256(request.json['password'].encode()).hexdigest()
         nic =  request.json['nic']
         dob = parse_date(request.json['dob'])
         role = 2
@@ -59,10 +60,10 @@ def register():
 def login():
     if request.is_json:
         email = request.json['email']
-        password = request.json['password']
+        password = hashlib.sha256(request.json['password'].encode()).hexdigest()
     else:
         email = request.form['email']
-        password = request.form['password']
+        password = hashlib.sha256( request.form['password'].encode()).hexdigest()
 
     user = User( email=email, password=password)
     user = user_login(user)

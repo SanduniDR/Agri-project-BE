@@ -133,6 +133,7 @@ def send_email():
 
     return jsonify(response='Emails sent successfully'), 200
 
+########### BUlk Email Sending to officers in province
 @com_routes.route('/bulk-mail/officer/send', methods=['POST'])
 def send_bulk_mail_officers_by_province():
     data = request.get_json()

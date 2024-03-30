@@ -1,3 +1,7 @@
 DEBUG = True
-SQLALCHEMY_DATABASE_URI = 'sqlite:///path/to/your/database.db'
-
+SQLALCHEMY_DATABASE_URI = 'mysql://root@localhost/agriInfo'
+ACCESS_TOKEN = 'ya29.a0Ad52N3-q4RB1-HEa-zJxIoFcbRXiPSTT6ZPfGa2lPW1mqlYKQ3BIsGRSQdcbpaSr2r3qHg5Sj9vbr1VA7g_83am-4h8NUe-vklMord712pPoO39WY6vUh1UHMOx8idBaUNxs5Pr8f0cxpxmk7BiM4qcppqDvCutWQ4TkaCgYKAZoSARMSFQHGX2MinupaEvEsWGh8pb5VNMQ8ug0171'
+REFRESH_TOKEN = '1//04UWCOfs15otLCgYIARAAGAQSNwF-L9IrrD7aT8avhAhrIqmvRHk0oOyznMwNV25PZpdg3B7k5JuRk_cfMkP0N5C6iK7YiETQCLs'
+CLIENT_ID = '193460335729-9l46peebtta7ag6j7bf3c971ifg2fp0k.apps.googleusercontent.com'
+CLIENT_SECRET = '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'
+MAIL_SENDER = 'sandaunidilshika@gmail.com'

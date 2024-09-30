@@ -60,12 +60,7 @@ The **Ceylon AgriData** system follows a service-oriented multi-tier architectur
     ```bash
     cd myapp
     flutter pub get
-
-- For the mobile app (Flutter):
-    ```bash
-    cd myapp
-    flutter pub get
-    
+   
  - For the web app (React.js):
     ```bash
     cd AgriData-FE
